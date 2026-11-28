@@ -351,9 +351,11 @@ function renderPractice(){const v=document.getElementById("view");v.style.setPro
  v.innerHTML=h;markDead(v);wireDsaPlan()}
 // 300-problem plan: one row per pattern; open it to see its problems, tick them, open each on LeetCode.
 const D3=(typeof DSA300!=="undefined"&&DSA300)||{};
+// Cache the fixed 300-problem list once; reuse it for progress and backup checks.
+const D3ALL=Object.values(D3).flat();
 const d3id=slug=>"dsa300::"+slug;
 const d3count=pat=>{const L=D3[pat]||[];return [L.filter(r=>done[d3id(r[0])]).length,L.length]};
-function dsaPlan(plan){const all=Object.values(D3).flat(),dn=all.filter(r=>done[d3id(r[0])]).length;
+function dsaPlan(plan){const all=D3ALL,dn=all.filter(r=>done[d3id(r[0])]).length;
  if(!all.length)return "";
  return `<div class="overall"><div class="bar"><i id="d3bar" style="width:${dn/all.length*100}%"></i></div><span id="d3txt">${dn} of ${all.length} problems solved</span></div>
  <p class="hint">Tap a pattern to see its problems. Tick each one when you solve it yourself. Problems open on LeetCode (free account; no Premium needed).</p>
@@ -364,13 +366,13 @@ function wireDsaPlan(){const box=document.querySelector(".d3list");if(!box)retur
  box.addEventListener("change",e=>{const cb=e.target;if(!cb.matches||!cb.matches("input[data-id]"))return;
   if(cb.checked)done[cb.dataset.id]=1;else delete done[cb.dataset.id];save();cb.closest("li").classList.toggle("done",cb.checked);
   const d=cb.closest("details"),[a,b]=d3count(d.dataset.pat);d.querySelector(".d3cnt").textContent=`${a}/${b}`;
-  const all=Object.values(D3).flat(),dn=all.filter(r=>done[d3id(r[0])]).length;document.getElementById("d3bar").style.width=dn/all.length*100+"%";document.getElementById("d3txt").textContent=`${dn} of ${all.length} problems solved`});
+  const all=D3ALL,dn=all.filter(r=>done[d3id(r[0])]).length;document.getElementById("d3bar").style.width=dn/all.length*100+"%";document.getElementById("d3txt").textContent=`${dn} of ${all.length} problems solved`});
  box.querySelectorAll("details.d3pat").forEach(d=>d.addEventListener("toggle",()=>{if(!d.open)return;box.querySelectorAll("details.d3pat[open]").forEach(o=>{if(o!==d)o.open=false});
   const t=d.getBoundingClientRect().top,nav=(document.getElementById("nav")||{}).offsetHeight||0;if(t<nav)scrollToEl(d)}))}
 // Save / load progress as a small file, to move it to another phone or browser. Nothing goes to any server.
 // A loaded file only adds ticks the site knows (unknown or changed topics are skipped), and never removes any.
 function knownIds(){const ids=new Set();ORDER.forEach(k=>SYL[k].levels.forEach(L=>L.modules.forEach(m=>m.topics.forEach(t=>ids.add(tk(k,split(t)[0]))))));
- PORDER.forEach(p=>PROGRAMS[p].phases.forEach((ph,i)=>ph.tasks.forEach((t,j)=>ids.add(`job-${p}::${i}::${j}`))));Object.values((typeof DSA300!=="undefined"&&DSA300)||{}).flat().forEach(r=>ids.add("dsa300::"+r[0]));return ids}
+ PORDER.forEach(p=>PROGRAMS[p].phases.forEach((ph,i)=>ph.tasks.forEach((t,j)=>ids.add(`job-${p}::${i}::${j}`))));D3ALL.forEach(r=>ids.add("dsa300::"+r[0]));return ids}
 function progressBox(){const box=document.getElementById("progio");if(!box)return;
  box.innerHTML=`<button type="button" class="ghost sm" id="psave" title="Download your ticks as a small file">Save progress</button><button type="button" class="ghost sm" id="popen" title="Open a progress file saved on another device">Load progress</button><input type="file" id="pload" accept=".json,application/json" hidden><span class="status" id="pst" aria-live="polite">Moves your ticks to another phone or browser.</span>`;
  document.getElementById("popen").onclick=()=>document.getElementById("pload").click();
